@@ -25,6 +25,12 @@ type CityRecord struct {
 		IsoCode string            `maxminddb:"iso_code"`
 		Names   map[string]string `maxminddb:"names"`
 	} `maxminddb:"country"`
+	Subdivisions []struct {
+		Names map[string]string `maxminddb:"names"`
+	} `maxminddb:"subdivisions"`
+	Postal struct {
+		Code string `maxminddb:"code"`
+	} `maxminddb:"postal"`
 }
 
 type LookupService struct {
@@ -94,6 +100,10 @@ func (s *LookupService) Lookup(ipStr string) (*models.GeoRecord, error) {
 		record.CountryCode = cityRec.Country.IsoCode
 		record.Latitude = cityRec.Location.Latitude
 		record.Longitude = cityRec.Location.Longitude
+		record.PostalCode = cityRec.Postal.Code
+		if len(cityRec.Subdivisions) > 0 {
+			record.Region = cityRec.Subdivisions[0].Names["en"]
+		}
 	}
 
 	// Fallback to country DB if city DB didn't have country

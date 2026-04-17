@@ -81,9 +81,11 @@ var monitorCmd = &cobra.Command{
 					"ip":           record.IP,
 					"country":      record.Country,
 					"country_code": record.CountryCode,
+					"region":       record.Region,
 					"city":         record.City,
 					"lat":          record.Latitude,
 					"long":         record.Longitude,
+					"postal":       record.PostalCode,
 					"asn":          record.ASN,
 					"org":          record.Organization,
 				}).Info("Traffic Hit")
