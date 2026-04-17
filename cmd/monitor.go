@@ -22,6 +22,7 @@ var (
 	cityDB      string
 	countryDB   string
 	skipPrivate bool
+	proxyProto  bool
 )
 
 var monitorCmd = &cobra.Command{
@@ -61,7 +62,7 @@ var monitorCmd = &cobra.Command{
 
 		// Start Capture
 		go func() {
-			err := capture.StartCapture(device, port, func(srcIP string) {
+			err := capture.StartCapture(device, port, proxyProto, func(srcIP string) {
 				if skipPrivate {
 					ip := net.ParseIP(srcIP)
 					if ip != nil && ip.IsPrivate() {
@@ -109,4 +110,5 @@ func init() {
 	monitorCmd.Flags().StringVar(&cityDB, "city-db", "/home/hornet/personal-pr/cidr/GeoLite2-City.mmdb", "Path to City MMDB")
 	monitorCmd.Flags().StringVar(&countryDB, "country-db", "/home/hornet/personal-pr/cidr/GeoLite2-Country.mmdb", "Path to Country MMDB")
 	monitorCmd.Flags().BoolVar(&skipPrivate, "skip-private", false, "Skip private/internal IP addresses")
+	monitorCmd.Flags().BoolVar(&proxyProto, "proxy-protocol", false, "Enable PROXY protocol parsing")
 }

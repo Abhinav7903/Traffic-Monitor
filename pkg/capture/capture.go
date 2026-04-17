@@ -3,6 +3,7 @@ package capture
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
@@ -11,7 +12,7 @@ import (
 
 type PacketHandler func(srcIP string)
 
-func StartCapture(device string, port int, handler PacketHandler) error {
+func StartCapture(device string, port int, proxyProto bool, handler PacketHandler) error {
 	handle, err := pcap.OpenLive(device, 1600, true, pcap.BlockForever)
 	if err != nil {
 		return fmt.Errorf("error opening device %s: %v", device, err)
@@ -48,18 +49,36 @@ func StartCapture(device string, port int, handler PacketHandler) error {
 			continue
 		}
 
+		srcIP := ""
 		ipLayer := packet.Layer(layers.LayerTypeIPv4)
 		if ipLayer != nil {
 			ip, _ := ipLayer.(*layers.IPv4)
-			handler(ip.SrcIP.String())
+			srcIP = ip.SrcIP.String()
+		} else {
+			ipv6Layer := packet.Layer(layers.LayerTypeIPv6)
+			if ipv6Layer != nil {
+				ip, _ := ipv6Layer.(*layers.IPv6)
+				srcIP = ip.SrcIP.String()
+			}
+		}
+
+		if srcIP == "" {
 			continue
 		}
 
-		ipv6Layer := packet.Layer(layers.LayerTypeIPv6)
-		if ipv6Layer != nil {
-			ip, _ := ipv6Layer.(*layers.IPv6)
-			handler(ip.SrcIP.String())
+		// If PROXY protocol is enabled, try to extract the real client IP from the payload
+		if proxyProto && len(tcp.Payload) > 0 {
+			payloadStr := string(tcp.Payload)
+			if strings.HasPrefix(payloadStr, "PROXY ") {
+				// PROXY TCP4/TCP6 SOURCE_IP DEST_IP SOURCE_PORT DEST_PORT\r\n
+				parts := strings.Split(payloadStr, " ")
+				if len(parts) >= 3 {
+					srcIP = parts[2]
+				}
+			}
 		}
+
+		handler(srcIP)
 	}
 
 	return nil

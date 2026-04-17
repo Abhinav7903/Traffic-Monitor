@@ -6,6 +6,8 @@ A real-time, high-performance network traffic monitor written in Go. It captures
 
 - **Real-time Capture:** Direct packet capture using `gopacket` (libpcap).
 - **Local GeoIP:** Blazing fast lookups using local MaxMind `.mmdb` files (no external API calls during capture).
+- **Traffic Filtering:** Optionally skip internal/private IP ranges (RFC 1918) to focus on external traffic.
+- **Proxy Support:** Supports **PROXY Protocol v1** to see real visitor IPs even when behind a load balancer.
 - **Observability:**
   - **Colored CLI:** Real-time log of traffic hits with detailed location data.
   - **Prometheus Metrics:** Exported hit counters segmented by IP, Country, City, and ASN.
@@ -34,10 +36,10 @@ Monitor traffic on port 80 (default):
 sudo ./traffic-mon monitor
 ```
 
-### Custom Port and Metrics
-Monitor port 443 and serve metrics on port 9100:
+### Custom Port, Metrics and Filtering
+Monitor port 443, serve metrics on port 9100, skip internal traffic, and enable PROXY protocol:
 ```bash
-sudo ./traffic-mon monitor --port 443 --metrics-port 9100
+sudo ./traffic-mon monitor --port 443 --metrics-port 9100 --skip-private --proxy-protocol
 ```
 
 ### Advanced Configuration
@@ -75,3 +77,10 @@ Metrics are available at `http://localhost:9090/metrics`.
 - `pkg/geoip`: Local MMDB lookup engine.
 - `pkg/metrics`: Prometheus registry and hit recording.
 - `cmd/`: CLI command structure using Cobra.
+
+## Troubleshooting
+
+### Seeing Private IPs (e.g., 10.x.x.x)
+If you see private IPs in your logs even when external visitors are hitting your site, it typically means your server is behind a **Load Balancer** or **Reverse Proxy**. The monitor is seeing the internal IP of the proxy.
+- Use `--skip-private` to filter these out.
+- Use `--proxy-protocol` if your Load Balancer (e.g., GCP, AWS, Nginx) is configured to send PROXY protocol headers. This will allow the monitor to extract the real client IP.
