@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
@@ -20,6 +21,7 @@ var (
 	asnDB       string
 	cityDB      string
 	countryDB   string
+	skipPrivate bool
 )
 
 var monitorCmd = &cobra.Command{
@@ -60,6 +62,13 @@ var monitorCmd = &cobra.Command{
 		// Start Capture
 		go func() {
 			err := capture.StartCapture(device, port, func(srcIP string) {
+				if skipPrivate {
+					ip := net.ParseIP(srcIP)
+					if ip != nil && ip.IsPrivate() {
+						return
+					}
+				}
+
 				record, err := lookup.Lookup(srcIP)
 				if err != nil {
 					logger.Warnf("Lookup failed for %s: %v", srcIP, err)
@@ -99,4 +108,5 @@ func init() {
 	monitorCmd.Flags().StringVar(&asnDB, "asn-db", "/home/hornet/personal-pr/cidr/GeoLite2-ASN.mmdb", "Path to ASN MMDB")
 	monitorCmd.Flags().StringVar(&cityDB, "city-db", "/home/hornet/personal-pr/cidr/GeoLite2-City.mmdb", "Path to City MMDB")
 	monitorCmd.Flags().StringVar(&countryDB, "country-db", "/home/hornet/personal-pr/cidr/GeoLite2-Country.mmdb", "Path to Country MMDB")
+	monitorCmd.Flags().BoolVar(&skipPrivate, "skip-private", false, "Skip private/internal IP addresses")
 }
