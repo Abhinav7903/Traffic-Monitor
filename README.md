@@ -62,7 +62,7 @@ INFO[0005] Traffic Hit  asn=15169 city="Mountain View" country=USA ip=8.8.8.8 or
 ### 2. Prometheus Metrics
 Metrics are available at `http://localhost:9090/metrics`.
 - **Metric Name:** `traffic_monitor_hits_total`
-- **Labels:** `ip`, `country`, `city`, `asn`, `organization`
+- **Labels:** `ip`, `country`, `country_code`, `city`, `asn`, `organization`
 
 ### 3. Grafana Integration
 1. Add a **Prometheus Data Source** pointing to your monitor's metrics port.
@@ -70,6 +70,10 @@ Metrics are available at `http://localhost:9090/metrics`.
    - **Total Traffic by Country:** `sum(traffic_monitor_hits_total) by (country)`
    - **Top 10 Source IPs:** `topk(10, sum(traffic_monitor_hits_total) by (ip))`
    - **Traffic by ASN:** `sum(traffic_monitor_hits_total) by (asn)`
+3. **Geomap Visualization:**
+   - Use the `country_code` label with the **Geomap** panel.
+   - Set **Location Mode** to `Lookup` and **Lookup Field** to `country_code`.
+   - Set **Mapping** to `ISO 3166-1 alpha-2`.
 
 ## Architecture
 

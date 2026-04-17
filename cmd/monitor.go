@@ -78,11 +78,12 @@ var monitorCmd = &cobra.Command{
 
 				// Log the hit with colors
 				logger.WithFields(logrus.Fields{
-					"ip":      record.IP,
-					"country": record.Country,
-					"city":    record.City,
-					"asn":     record.ASN,
-					"org":     record.Organization,
+					"ip":           record.IP,
+					"country":      record.Country,
+					"country_code": record.CountryCode,
+					"city":         record.City,
+					"asn":          record.ASN,
+					"org":          record.Organization,
 				}).Info("Traffic Hit")
 
 				// Update Prometheus

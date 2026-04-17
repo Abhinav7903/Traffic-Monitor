@@ -15,7 +15,7 @@ var (
 			Name: "traffic_monitor_hits_total",
 			Help: "Total number of traffic hits monitored",
 		},
-		[]string{"ip", "country", "city", "asn", "organization"},
+		[]string{"ip", "country", "country_code", "city", "asn", "organization"},
 	)
 )
 
@@ -27,6 +27,7 @@ func RecordHit(record *models.GeoRecord) {
 	TrafficHits.WithLabelValues(
 		record.IP,
 		record.Country,
+		record.CountryCode,
 		record.City,
 		fmt.Sprintf("%d", record.ASN),
 		record.Organization,
